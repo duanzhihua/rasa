@@ -184,7 +184,6 @@ jobs:
 
   model_regression_test_gpu:
     name: Model Regression Tests - GPU
-    continue-on-error: true
     needs:
       - deploy_runner_gpu
       - read_test_configuration
@@ -418,13 +417,12 @@ jobs:
           path: report.json
 
       - name: Stop Datadog Agent
-        if: steps.set_dataset_config_vars.outputs.is_dataset_exists == 'true' && steps.set_dataset_config_vars.outputs.is_config_exists == 'true'
+        if: always() && steps.set_dataset_config_vars.outputs.is_dataset_exists == 'true' && steps.set_dataset_config_vars.outputs.is_config_exists == 'true'
         run: |
           sudo service datadog-agent stop
 
   model_regression_test_cpu:
     name: Model Regression Tests - CPU
-    continue-on-error: true
     needs:
       - read_test_configuration
     env:
@@ -650,7 +648,7 @@ jobs:
           path: report.json
 
       - name: Stop Datadog Agent
-        if: steps.set_dataset_config_vars.outputs.is_dataset_exists == 'true' && steps.set_dataset_config_vars.outputs.is_config_exists == 'true'
+        if: always() && steps.set_dataset_config_vars.outputs.is_dataset_exists == 'true' && steps.set_dataset_config_vars.outputs.is_config_exists == 'true'
         run: |
           sudo service datadog-agent stop
 
@@ -661,6 +659,7 @@ jobs:
       - model_regression_test_cpu
       - model_regression_test_gpu
     if: always() && (needs.model_regression_test_cpu.result == 'success' || needs.model_regression_test_gpu.result == 'success')
+
     steps:
       - name: Checkout git repository 🕝
         uses: actions/checkout@v2
@@ -698,10 +697,7 @@ jobs:
     name: Add a comment with the results
     runs-on: ubuntu-latest
     needs:
-      - model_regression_test_cpu
-      - model_regression_test_gpu
       - combine_reports
-    if: always() && (needs.model_regression_test_cpu.result == 'success' || needs.model_regression_test_gpu.result == 'success')
 
     steps:
       - name: Checkout
