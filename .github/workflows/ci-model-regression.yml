@@ -698,6 +698,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - combine_reports
+    if: always() && needs.combine_reports.result == 'success'
 
     steps:
       - name: Checkout
